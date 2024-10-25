@@ -18,4 +18,16 @@ public class Connection {
             throw new RuntimeException(e);
         }
     }
+
+    public static void disconnect() {
+        if (manager != null) {
+            try {
+                manager.close();
+                manager = null;
+                System.out.println("Successfully disconnected");
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
 }
