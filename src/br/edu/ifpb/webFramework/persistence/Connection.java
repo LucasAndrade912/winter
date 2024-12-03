@@ -4,6 +4,7 @@ import br.edu.ifpb.webFramework.exceptions.ConnectionAlreadyExists;
 
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.sql.Statement;
 
 public class Connection {
     private static java.sql.Connection manager;
@@ -33,5 +34,9 @@ public class Connection {
                 throw new RuntimeException(e);
             }
         }
+    }
+
+    public static java.sql.Connection getManager() {
+        return manager;
     }
 }
