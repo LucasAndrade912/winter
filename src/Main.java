@@ -7,6 +7,10 @@ public class Main {
         Connection.connect("localhost", 5432, "winter", "postgres", "postgres");
         Processor.process(Person.class);
         Processor.process(Phone.class);
+
+        // Criando Usuário
+        Person person = new Person("Johnner Yelcde", "johnner@gmail.com");
+        Processor.processInsert(person);
         Connection.disconnect();
     }
 }
