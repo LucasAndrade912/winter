@@ -4,9 +4,9 @@ import br.edu.ifpb.webFramework.persistence.annotations.Processor;
 
 public class Main {
     public static void main(String[] args) throws ConnectionAlreadyExists, IllegalAccessException {
-        java.sql.Connection manager = Connection.connect("localhost", 5432, "winter", "postgres", "postgres");
-        User user = new User("Lucas", "exemplo@gmail.com");
-        Processor.process(user);
+        Connection.connect("localhost", 5432, "winter", "postgres", "postgres");
+        Processor.process(User.class);
+        Processor.process(Phone.class);
         Connection.disconnect();
     }
 }

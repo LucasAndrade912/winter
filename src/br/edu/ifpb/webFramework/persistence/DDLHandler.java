@@ -6,9 +6,11 @@ import java.sql.Statement;
 
 public class DDLHandler {
     public static void createTable(Class<?> cls) {
-        String tableName = cls.getSimpleName();
+        String tableName = cls.getSimpleName().toLowerCase();
 
-        StringBuilder sql = new StringBuilder("CREATE TABLE " + tableName + "(");
+        tableName = tableName.equals("user") ? "users" : tableName;
+
+        StringBuilder sql = new StringBuilder("create table if not exists " + tableName + " (");
 
         Field[] fields = cls.getDeclaredFields();
 
@@ -21,12 +23,12 @@ public class DDLHandler {
 
         sql.setLength(sql.length() - 2);
         sql.append(");");
-        System.out.println(sql.toString());
 
         java.sql.Connection manager = Connection.getManager();
+        System.out.println(sql.toString());
 
         try (Statement statement = manager.createStatement()) {
-            statement.executeUpdate(sql.toString());
+            statement.execute(sql.toString());
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -34,13 +36,15 @@ public class DDLHandler {
 
     private static String mapJavaTypeToSQLType(Class<?> type) {
         if (type == Long.class || type == long.class) {
-            return "BIGINT";
+            return "bigint";
         } else if (type == String.class) {
-            return "VARCHAR(255)";
+            return "varchar(255)";
         } else if (type == Integer.class || type == int.class) {
-            return "INTEGER";
+            return "integer";
+        } else if (type == Double.class || type == double.class) {
+            return "double precision";
         } else if (type == java.time.LocalDate.class) {
-            return "DATE";
+            return "date";
         }
         throw new IllegalArgumentException("Type not supported: " + type.getSimpleName());
     }

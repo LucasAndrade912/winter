@@ -4,12 +4,11 @@ import br.edu.ifpb.webFramework.exceptions.ConnectionAlreadyExists;
 
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.sql.Statement;
 
 public class Connection {
     private static java.sql.Connection manager;
 
-    public static java.sql.Connection connect(String ip, Integer port, String dbName, String user, String password) throws ConnectionAlreadyExists {
+    public static void connect(String ip, Integer port, String dbName, String user, String password) throws ConnectionAlreadyExists {
         if (manager != null)
             throw new ConnectionAlreadyExists(); // Verifica se a conexão já existe
 
@@ -18,7 +17,6 @@ public class Connection {
         try {
             manager = DriverManager.getConnection(url, user, password);
             System.out.println("Connecting to " + ip + ":" + port + " database: " + dbName);
-            return manager;
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
