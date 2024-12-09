@@ -3,6 +3,8 @@ package br.edu.ifpb.webFramework.persistence;
 import java.lang.reflect.Field;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Arrays;
+import java.util.stream.Stream;
 
 public class DDLHandler {
     public static void createTable(Class<?> cls) {
@@ -13,6 +15,11 @@ public class DDLHandler {
         StringBuilder sql = new StringBuilder("create table if not exists " + tableName + " (");
 
         Field[] fields = cls.getDeclaredFields();
+
+        Stream<Field> fieldStream = Arrays.stream(fields).filter(field -> field.getName().equalsIgnoreCase("id"));
+
+        if (fieldStream.findFirst().isEmpty())
+            sql.append("id serial primary key, ");
 
         for (Field field : fields) {
             field.setAccessible(true);
