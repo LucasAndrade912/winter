@@ -1,4 +1,5 @@
 import br.edu.ifpb.webFramework.persistence.annotations.Entity;
+import br.edu.ifpb.webFramework.persistence.annotations.OneToOne;
 
 import java.time.LocalDate;
 
@@ -9,6 +10,9 @@ public class Phone {
     private Double screenSize;
     private Integer batteryCapacity;
     private LocalDate manufacturingDate;
+
+    @OneToOne
+    private Person person;
 
     public Phone(String brand, String operatingSystem, Double screenSize, Integer batteryCapacity, LocalDate manufacturingDate) {
         this.brand = brand;

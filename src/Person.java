@@ -1,11 +1,15 @@
 import br.edu.ifpb.webFramework.persistence.annotations.Entity;
+import br.edu.ifpb.webFramework.persistence.annotations.OneToOne;
 
 @Entity
-public class User {
+public class Person {
     private String name;
     private String email;
 
-    public User(String name, String email) {
+    @OneToOne(mappedBy = "person")
+    private Phone phone;
+
+    public Person(String name, String email) {
         this.name = name;
         this.email = email;
     }

@@ -1,14 +1,19 @@
 package br.edu.ifpb.webFramework.persistence;
 
+import br.edu.ifpb.webFramework.persistence.annotations.OneToOne;
+
 import java.lang.reflect.Field;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.stream.Stream;
 
 public class DDLHandler {
     public static void createTable(Class<?> cls) {
         String tableName = cls.getSimpleName().toLowerCase();
+        List<String> foreignKeys = new ArrayList<>();
 
         tableName = tableName.equals("user") ? "users" : tableName;
 
@@ -23,10 +28,29 @@ public class DDLHandler {
 
         for (Field field : fields) {
             field.setAccessible(true);
+
             String columnName = field.getName();
             String columnType = mapJavaTypeToSQLType(field.getType());
-            sql.append(columnName).append(" ").append(columnType).append(", ");
+
+            if (field.isAnnotationPresent(OneToOne.class)) {
+                OneToOne annotation = field.getAnnotation(OneToOne.class);
+
+                if (annotation.mappedBy().isEmpty()) {
+                    System.out.println(field.getName());
+
+                    foreignKeys.add(field.getName().concat("_id"));
+
+                    if (columnType.equalsIgnoreCase("TYPE"))
+                        sql.append(columnName).append("_id ").append("integer").append(", ");
+                }
+            } else {
+                sql.append(columnName).append(" ").append(columnType).append(", ");
+            }
         }
+
+        foreignKeys.forEach(foreignKey -> {
+            sql.append("foreign key (").append(foreignKey).append(") references ").append(foreignKey, 0, foreignKey.length() - 3).append("(id), ");
+        });
 
         sql.setLength(sql.length() - 2);
         sql.append(");");
@@ -52,7 +76,8 @@ public class DDLHandler {
             return "double precision";
         } else if (type == java.time.LocalDate.class) {
             return "date";
+        } else {
+            return "TYPE";
         }
-        throw new IllegalArgumentException("Type not supported: " + type.getSimpleName());
     }
 }
