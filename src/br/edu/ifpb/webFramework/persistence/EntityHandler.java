@@ -5,6 +5,8 @@ import java.lang.reflect.Field;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+import static br.edu.ifpb.webFramework.persistence.DDLHandler.mapJavaTypeToSQLType;
+
 public class EntityHandler {
     public static void insert(Object entity) {
         Class<?> clz = entity.getClass();
@@ -33,8 +35,10 @@ public class EntityHandler {
                 // Englobando o que for String e Data em aspas
                 if (value instanceof String || value instanceof java.time.LocalDate) {
                     sqlvalue.append("'").append(value).append("', ");
+                } else if (value == null) {
+                    sqlvalue.append("null").append(", ");
                 } else {
-                    sqlvalue.append(value);
+                    sqlvalue.append(value).append(", ");
                 }
             } catch (IllegalAccessException e) {
                 throw new RuntimeException(e);

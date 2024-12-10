@@ -65,7 +65,7 @@ public class DDLHandler {
         }
     }
 
-    private static String mapJavaTypeToSQLType(Class<?> type) {
+    static String mapJavaTypeToSQLType(Class<?> type) {
         if (type == Long.class || type == long.class) {
             return "bigint";
         } else if (type == String.class) {

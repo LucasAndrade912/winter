@@ -6,8 +6,8 @@ public class Person {
     private String name;
     private String email;
 
-    @OneToOne(mappedBy = "person")
-    private Phone phone;
+//    @OneToOne(mappedBy = "person")
+//    private Phone phone;
 
     public Person(String name, String email) {
         this.name = name;
