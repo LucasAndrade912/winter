@@ -1,62 +1,73 @@
 package br.edu.ifpb.webFramework.persistence;
 
-import br.edu.ifpb.webFramework.persistence.annotations.OneToOne;
+import br.edu.ifpb.webFramework.persistence.annotations.Column;
+import br.edu.ifpb.webFramework.persistence.annotations.Entity;
 
 import java.lang.reflect.Field;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Stream;
+import java.time.LocalDate;
 
 public class DDLHandler {
-    public static void createTable(Class<?> cls) {
-        String tableName = cls.getSimpleName().toLowerCase();
-        List<String> foreignKeys = new ArrayList<>();
+    public static void createTable(Class<?> clzz) {
+        String tableName = clzz.getSimpleName();
 
-        tableName = tableName.equals("user") ? "users" : tableName;
+        if (clzz.isAnnotationPresent(Entity.class)) {
+            Entity entity = clzz.getAnnotation(Entity.class);
+            tableName = entity.name();
+        }
 
-        StringBuilder sql = new StringBuilder("create table if not exists " + tableName + " (");
+        StringBuilder sql = new StringBuilder("CREATE TABLE IF NOT EXISTS " + tableName + "(");
 
-        Field[] fields = cls.getDeclaredFields();
-
-        Stream<Field> fieldStream = Arrays.stream(fields).filter(field -> field.getName().equalsIgnoreCase("id"));
-
-        if (fieldStream.findFirst().isEmpty())
-            sql.append("id serial primary key, ");
+        StringBuilder foreignKeys = new StringBuilder();
+        Field[] fields = clzz.getDeclaredFields();
 
         for (Field field : fields) {
             field.setAccessible(true);
 
-            String columnName = field.getName();
-            String columnType = mapJavaTypeToSQLType(field.getType());
+            if (field.isAnnotationPresent(Column.class)) {
+                Column column = field.getAnnotation(Column.class);
+                String columnName = column.name();
+                String columnType;
+                StringBuilder constraints = new StringBuilder();
 
-            if (field.isAnnotationPresent(OneToOne.class)) {
-                OneToOne annotation = field.getAnnotation(OneToOne.class);
-
-                if (annotation.mappedBy().isEmpty()) {
-                    System.out.println(field.getName());
-
-                    foreignKeys.add(field.getName().concat("_id"));
-
-                    if (columnType.equalsIgnoreCase("TYPE"))
-                        sql.append(columnName).append("_id ").append("integer").append(", ");
+                if (column.primaryKey()) {
+                    columnType = "SERIAL PRIMARY KEY";
+                } else if (column.foreignKey()) {
+                    columnType = "INTEGER";
+                } else {
+                    columnType = mapJavaTypeToSQLType(field.getType());
                 }
-            } else {
-                sql.append(columnName).append(" ").append(columnType).append(", ");
+
+                if (column.unique()) {
+                    constraints.append(" UNIQUE");
+                }
+
+                if (column.notNull()) {
+                    constraints.append(" NOT NULL");
+                }
+
+                if (column.foreignKey()) {
+                    foreignKeys.append("FOREIGN KEY (")
+                            .append(column.name())
+                            .append(") REFERENCES ")
+                            .append(column.references())
+                            .append("(").append(column.referenceId()).append("), ");
+                }
+
+                sql.append(columnName)
+                        .append(" ")
+                        .append(columnType)
+                        .append(constraints)
+                        .append(", ");
             }
         }
 
-        foreignKeys.forEach(foreignKey -> {
-            sql.append("foreign key (").append(foreignKey).append(") references ").append(foreignKey, 0, foreignKey.length() - 3).append("(id), ");
-        });
-
+        sql.append(foreignKeys);
         sql.setLength(sql.length() - 2);
         sql.append(");");
 
         java.sql.Connection manager = Connection.getManager();
-        System.out.println(sql.toString());
 
         try (Statement statement = manager.createStatement()) {
             statement.execute(sql.toString());
@@ -67,17 +78,17 @@ public class DDLHandler {
 
     static String mapJavaTypeToSQLType(Class<?> type) {
         if (type == Long.class || type == long.class) {
-            return "bigint";
+            return "BIGINT";
         } else if (type == String.class) {
-            return "varchar(255)";
+            return "VARCHAR(255)";
         } else if (type == Integer.class || type == int.class) {
-            return "integer";
+            return "INTEGER";
         } else if (type == Double.class || type == double.class) {
-            return "double precision";
-        } else if (type == java.time.LocalDate.class) {
-            return "date";
-        } else {
-            return "TYPE";
+            return "DOUBLE PRECISION";
+        } else if (type == LocalDate.class) {
+            return "DATE";
         }
+
+        return "";
     }
 }
