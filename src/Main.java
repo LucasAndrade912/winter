@@ -18,6 +18,11 @@ public class Main {
 
         Processor.processInsert(person1);
         Processor.processInsert(person2);
+
+        System.out.println(person1.getId());
+        System.out.println(person2.getId());
+
+        Processor.processInsert(profile1);
         Connection.disconnect();
     }
 }
