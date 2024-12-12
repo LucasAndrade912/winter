@@ -10,15 +10,14 @@ public class Main {
         Processor.process(Profile.class);
 
         // Criando Usuário
-//        Person person1 = new Person("Lucas", "lucas@email.com");
-//
-//        Profile profile1 = new Profile("Olá galera", "yelcde", "dark");
-//        Person person2 = new Person("Johnner", null, profile1);
-//
-//
-//        Processor.processInsert(person1);
-//        Processor.processInsert(profile1);
-//        Processor.processInsert(person2);
+        Person person1 = new Person("Lucas", "lucas@email.com");
+
+        Profile profile1 = new Profile("Olá galera", "yelcde", "dark");
+        Person person2 = new Person("Johnner", null, profile1);
+        profile1.setPerson(person2);
+
+        Processor.processInsert(person1);
+        Processor.processInsert(person2);
         Connection.disconnect();
     }
 }
