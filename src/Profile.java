@@ -1,21 +1,19 @@
-import br.edu.ifpb.webFramework.persistence.annotations.Column;
 import br.edu.ifpb.webFramework.persistence.annotations.Entity;
+import br.edu.ifpb.webFramework.persistence.annotations.Id;
+import br.edu.ifpb.webFramework.persistence.annotations.OneToOne;
 
 @Entity(name = "profiles")
 public class Profile {
-    @Column(name = "id", primaryKey = true)
+    @Id
     private Long id;
 
-    @Column(name = "bio")
     private String bio;
 
-    @Column(name = "username", unique = true)
     private String username;
 
-    @Column(name = "screenTheme")
     private String screenTheme;
 
-    @Column(name = "user_id", foreignKey = true, references = "users", referenceId = "id")
+    @OneToOne(mappedBy = "profile")
     private Person person;
 
     public Profile(String bio, String username, String screenTheme) {

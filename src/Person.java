@@ -1,22 +1,22 @@
-import br.edu.ifpb.webFramework.persistence.annotations.Column;
-import br.edu.ifpb.webFramework.persistence.annotations.Entity;
+import br.edu.ifpb.webFramework.persistence.annotations.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity(name = "users")
 public class Person {
-    @Column(name = "id", primaryKey = true)
+    @Id
     private Long id;
 
-    @Column(name = "name", notNull = true)
     private String name;
 
-    @Column(name = "email", unique = true)
     private String email;
 
+    @OneToOne
+    @JoinColumn(name = "profile_id")
     private Profile profile;
 
+    @OneToMany(mappedBy = "user")
     private List<Phone> phones = new ArrayList<>();
 
     public Person(String name, String email) {

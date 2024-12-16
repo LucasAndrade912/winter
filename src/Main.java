@@ -1,28 +1,14 @@
-import br.edu.ifpb.webFramework.exceptions.ConnectionAlreadyExists;
 import br.edu.ifpb.webFramework.persistence.Connection;
-import br.edu.ifpb.webFramework.persistence.annotations.Processor;
+import br.edu.ifpb.webFramework.persistence.DDLHandler;
 
 public class Main {
-    public static void main(String[] args) throws ConnectionAlreadyExists, IllegalAccessException {
+    public static void main(String[] args) throws Exception {
         Connection.connect("localhost", 5432, "winter", "postgres", "postgres");
-        Processor.process(Person.class);
-        Processor.process(Phone.class);
-        Processor.process(Profile.class);
 
-        // Criando Usuário
-        Person person1 = new Person("Lucas", "lucas@email.com");
+        DDLHandler.createTable(Profile.class);
+        DDLHandler.createTable(Person.class);
+        DDLHandler.createTable(Phone.class);
 
-        Profile profile1 = new Profile("Olá galera", "yelcde", "dark");
-        Person person2 = new Person("Johnner", null, profile1);
-        profile1.setPerson(person2);
-
-        Processor.processInsert(person1);
-        Processor.processInsert(person2);
-
-        System.out.println(person1.getId());
-        System.out.println(person2.getId());
-
-        Processor.processInsert(profile1);
         Connection.disconnect();
     }
 }

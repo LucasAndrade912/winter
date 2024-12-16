@@ -1,30 +1,28 @@
-import br.edu.ifpb.webFramework.persistence.annotations.Column;
 import br.edu.ifpb.webFramework.persistence.annotations.Entity;
+import br.edu.ifpb.webFramework.persistence.annotations.Id;
+import br.edu.ifpb.webFramework.persistence.annotations.JoinColumn;
+import br.edu.ifpb.webFramework.persistence.annotations.ManyToOne;
 
 import java.time.LocalDate;
 
 @Entity(name = "phones")
 public class Phone {
-    @Column(name = "id", primaryKey = true)
+    @Id
     private Long id;
 
-    @Column(name = "brand", notNull = true)
     private String brand;
 
-    @Column(name = "operatingSystem")
     private String operatingSystem;
 
-    @Column(name = "screenSize")
     private Double screenSize;
 
-    @Column(name = "batteryCapacity")
     private Integer batteryCapacity;
 
-    @Column(name = "manufacturingDate", notNull = true)
     private LocalDate manufacturingDate;
 
-    @Column(name = "user_id", foreignKey = true, references = "users", referenceId = "id")
-    private Person person;
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private Person user;
 
     public Phone(String brand, String operatingSystem, Double screenSize, Integer batteryCapacity, LocalDate manufacturingDate) {
         this.brand = brand;
