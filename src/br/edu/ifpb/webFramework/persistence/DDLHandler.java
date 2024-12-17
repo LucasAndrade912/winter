@@ -22,8 +22,8 @@ public class DDLHandler {
             for (Field field : fields) {
                 field.setAccessible(true);
 
-                String columnName = field.isAnnotationPresent(Column.class)
-                        ? field.getAnnotation(Column.class).name()
+                String columnName = field.isAnnotationPresent(Constraints.class)
+                        ? field.getAnnotation(Constraints.class).name()
                         : field.getName();
 
                 if (field.isAnnotationPresent(OneToOne.class)) {
@@ -102,12 +102,12 @@ public class DDLHandler {
 
                     StringBuilder constraints = new StringBuilder();
 
-                    if (field.isAnnotationPresent(Column.class)) {
-                        if (field.getAnnotation(Column.class).unique()) {
+                    if (field.isAnnotationPresent(Constraints.class)) {
+                        if (field.getAnnotation(Constraints.class).unique()) {
                             constraints.append(" UNIQUE");
                         }
 
-                        if (field.getAnnotation(Column.class).nullable()) {
+                        if (field.getAnnotation(Constraints.class).nullable()) {
                             constraints.append(" NOT NULL");
                         }
                     }
