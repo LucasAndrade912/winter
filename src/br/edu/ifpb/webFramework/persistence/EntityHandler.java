@@ -35,32 +35,36 @@ public class EntityHandler {
         for (Field field : fields) {
             field.setAccessible(true);
 
-            if (!field.isAnnotationPresent(OneToMany.class) || field.getAnnotation(OneToOne.class).mappedBy().isBlank()) {
-                if (!field.isAnnotationPresent(Id.class)) {
-                    String columnName;
+            if (!field.isAnnotationPresent(OneToMany.class)) {
+//                OneToOne oneToOne = field.getAnnotation(OneToOne.class);
+//                System.out.println(oneToOne.mappedBy());
+//                if (!oneToOne.mappedBy().isEmpty()) {
+                    if (!field.isAnnotationPresent(Id.class)) {
+                        String columnName;
 
-                    if (field.isAnnotationPresent(JoinColumn.class)) {
-                        JoinColumn joinColumnAnnotation = field.getAnnotation(JoinColumn.class);
-                        columnName = joinColumnAnnotation.name();
-                    } else {
-                        columnName = field.getName();
+                        if (field.isAnnotationPresent(JoinColumn.class)) {
+                            JoinColumn joinColumnAnnotation = field.getAnnotation(JoinColumn.class);
+                            columnName = joinColumnAnnotation.name();
+                        } else {
+                            columnName = field.getName();
+                        }
+
+                        sql.append(columnName).append(", ");
+
+                        Object value = field.get(entity);
+
+                        // Englobando o que for String e Data em aspas
+                        if (value instanceof String || value instanceof java.time.LocalDate) {
+                            sqlValue.append("'").append(value).append("', ");
+                        } else if (value == null || value instanceof ArrayList) {
+                            sqlValue.append("null").append(", ");
+                        } else if (isEntity(field)) {
+                            insert(value); // Persiste a entidade relacionada
+                        } else {
+                            sqlValue.append(value).append(", ");
+                        }
                     }
-
-                    sql.append(columnName).append(", ");
-
-                    Object value = field.get(entity);
-
-                    // Englobando o que for String e Data em aspas
-                    if (value instanceof String || value instanceof java.time.LocalDate) {
-                        sqlValue.append("'").append(value).append("', ");
-                    } else if (value == null || value instanceof ArrayList) {
-                        sqlValue.append("null").append(", ");
-                    } else if (isEntity(field)) {
-                        insert(value); // Persiste a entidade relacionada
-                    } else {
-                        sqlValue.append(value).append(", ");
-                    }
-                }
+//                }
             }
         }
 
@@ -68,7 +72,7 @@ public class EntityHandler {
         executeInsert(sql.toString(), entity);
     }
 
-    public static void deleteById(Object entity) throws IllegalAccessException {
+    public static void deleteById(Object entity, String id) throws IllegalAccessException {
         if (entity == null) {
             return; // Não faz nada se a entidade for nula
         }
@@ -86,29 +90,33 @@ public class EntityHandler {
             tableName = clzz.getSimpleName().toLowerCase();
         }
 
-        // Obtém o valor do ID
-        Object idValue = getId(entity);
-        if (idValue == null) {
-            throw new RuntimeException("Entidade sem ID definida não pode ser excluída.");
+        // Monta o SQL para exclusão
+        String sql = "DELETE FROM " + tableName + " WHERE id = " + id;
+
+        // Executa o DELETE
+        executeDelete(sql);
+    }
+
+    public static void deleteByName(Object entity, String name) throws IllegalAccessException {
+        if (entity == null) {
+            return; // Não faz nada se a entidade for nula
         }
 
-        // Processa relacionamentos @OneToMany
-        Field[] fields = clzz.getDeclaredFields();
-        for (Field field : fields) {
-            field.setAccessible(true);
+        Class<?> clzz = entity.getClass();
 
-            if (field.isAnnotationPresent(OneToMany.class)) {
-                Object relatedEntities = field.get(entity);
-                if (relatedEntities instanceof Iterable) {
-                    for (Object relatedEntity : (Iterable<?>) relatedEntities) {
-                        deleteById(relatedEntity); // Exclui entidades relacionadas
-                    }
-                }
-            }
+        // Verifica se é uma entidade válida
+        if (!clzz.isAnnotationPresent(Entity.class)) {
+            throw new RuntimeException("A classe não é uma entidade gerenciada.");
+        }
+
+        // Obtém o nome da tabela
+        String tableName = clzz.getAnnotation(Entity.class).name();
+        if (tableName.isEmpty()) {
+            tableName = clzz.getSimpleName().toLowerCase();
         }
 
         // Monta o SQL para exclusão
-        String sql = "DELETE FROM " + tableName + " WHERE id = " + idValue;
+        String sql = "DELETE FROM " + tableName + " WHERE name = " + "'" + name + "'";
 
         // Executa o DELETE
         executeDelete(sql);
@@ -122,7 +130,6 @@ public class EntityHandler {
             throw new RuntimeException("Erro ao excluir entidade: " + sql, e);
         }
     }
-
 
     private static boolean isEntity(Field field) {
         return field.getType().isAnnotationPresent(Entity.class);
