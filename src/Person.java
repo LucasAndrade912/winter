@@ -8,10 +8,10 @@ public class Person {
     @Id
     private Long id;
 
-    @Column(name = "name", unique = true)
+//    @Column(name = "name", unique = true)
     private String name;
 
-    @Column(name = "email", unique = true, nullable = false)
+//    @Column(name = "email", unique = true, nullable = false)
     private String email;
 
     @OneToOne
