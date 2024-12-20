@@ -8,27 +8,18 @@ public class Main {
     public static void main(String[] args) throws Exception {
         Connection.connect("localhost", 5432, "winter", "postgres", "postgres");
 
-//        DDLHandler.createTable(Profile.class);
-//        DDLHandler.createTable(Person.class);
-//        DDLHandler.createTable(Phone.class);
-
         String sql = new QueryBuilder("users")
                 .select()
                 .join("profiles", "users.profile_id = profiles.id")
+                .join("phones", "users.id = phones.user_id")
                 .orderBy("users.id")
                 .build();
 
-        System.out.println(sql);
-        System.out.println();
-
         List<Person> users = EntityManager.executeQuery(sql, Person.class);
-
-        users.forEach(user -> {
-            System.out.println("USER: " + user);
-            System.out.println("PROFILE: " + user.getProfile());
-            System.out.println("USER PROFILE: " + user.getProfile().getPerson());
-            System.out.println("-------------");
-        });
+        System.out.println(sql);
+        for (Person user : users) {
+            System.out.println(user);
+        }
 
         Connection.disconnect();
     }

@@ -1,6 +1,6 @@
 package br.edu.ifpb.webFramework.persistence;
 
-import br.edu.ifpb.webFramework.persistence.annotations.Column;
+import br.edu.ifpb.webFramework.persistence.annotations.Constraints;
 import br.edu.ifpb.webFramework.persistence.annotations.ManyToOne;
 import br.edu.ifpb.webFramework.persistence.annotations.OneToOne;
 
@@ -123,8 +123,8 @@ public class EntityManager {
 
 
     private static String getColumnName(Field field) {
-        if (field.isAnnotationPresent(Column.class)) {
-            Column column = field.getAnnotation(Column.class);
+        if (field.isAnnotationPresent(Constraints.class)) {
+            Constraints column = field.getAnnotation(Constraints.class);
             if (!column.name().isEmpty()) {
                 return column.name(); // Nome da coluna definido na anotação @Column
             }
