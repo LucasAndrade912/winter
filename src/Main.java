@@ -1,6 +1,4 @@
-import br.edu.ifpb.webFramework.persistence.Connection;
-import br.edu.ifpb.webFramework.persistence.DDLHandler;
-import br.edu.ifpb.webFramework.persistence.EntityHandler;
+import br.edu.ifpb.webFramework.persistence.*;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -33,6 +31,14 @@ public class Main {
         EntityHandler.insert(person1);
         EntityHandler.insert(person2);
         EntityHandler.insert(person3);
+
+        String sql = new QueryBuilder("users").select().orderBy("id").build();
+
+        List<Person> personList = EntityManager.executeQuery(sql, Person.class);
+
+        for (Person person : personList) {
+            System.out.println(person);
+        }
 
         Connection.disconnect();
     }
