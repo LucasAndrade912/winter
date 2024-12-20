@@ -12,16 +12,24 @@ public class QueryBuilder {
     private List<String> orderByColumns = new ArrayList<>();
     private List<String> havingConditions = new ArrayList<>();
     private boolean distinct = false;
-    private String orderByDirection = "ASC";
+    private OrderByDirection orderByDirection = OrderByDirection.ASC;
 
     public QueryBuilder(String tableName) {
         this.tableName = tableName;
     }
 
+    public enum OrderByDirection {
+        ASC, DESC
+    }
+
     // SELECT clause
     public QueryBuilder select(String... columns) {
-        for (String column : columns) {
-            selectColumns.add(column);
+        if (columns == null || columns.length == 0) {
+            selectColumns.add("*");
+        } else {
+            for (String column : columns) {
+                selectColumns.add(column);
+            }
         }
         return this;
     }
@@ -35,21 +43,6 @@ public class QueryBuilder {
     // WHERE clause
     public QueryBuilder where(String condition) {
         conditions.add(condition);
-        return this;
-    }
-
-    public QueryBuilder and(String condition) {
-        conditions.add("AND " + condition);
-        return this;
-    }
-
-    public QueryBuilder or(String condition) {
-        conditions.add("OR " + condition);
-        return this;
-    }
-
-    public QueryBuilder not(String condition) {
-        conditions.add("NOT " + condition);
         return this;
     }
 
@@ -86,12 +79,8 @@ public class QueryBuilder {
         return this;
     }
 
-    public QueryBuilder orderByDirection(String direction) {
-        if (direction.equalsIgnoreCase("ASC") || direction.equalsIgnoreCase("DESC")) {
-            this.orderByDirection = direction;
-        } else {
-            throw new IllegalArgumentException("Order direction must be 'ASC' or 'DESC'");
-        }
+    public QueryBuilder orderByDirection(OrderByDirection direction) {
+        this.orderByDirection = direction;
         return this;
     }
 
@@ -102,7 +91,7 @@ public class QueryBuilder {
         // SELECT clause
         query.append("SELECT ");
         if (distinct) query.append("DISTINCT ");
-        query.append(selectColumns.isEmpty() ? "*" : String.join(", ", selectColumns));
+        query.append(String.join(", ", selectColumns));
         query.append(" FROM ").append(tableName);
 
         // JOINs
@@ -128,7 +117,7 @@ public class QueryBuilder {
         // ORDER BY clause
         if (!orderByColumns.isEmpty()) {
             query.append(" ORDER BY ").append(String.join(", ", orderByColumns))
-                    .append(" ").append(orderByDirection);
+                    .append(" ").append(orderByDirection.name());
         }
 
         return query.toString();
