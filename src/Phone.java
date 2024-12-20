@@ -24,6 +24,9 @@ public class Phone {
     @JoinColumn(name = "user_id")
     private Person user;
 
+    public Phone() {
+    }
+
     public Phone(String brand, String operatingSystem, Double screenSize, Integer batteryCapacity, LocalDate manufacturingDate) {
         this.brand = brand;
         this.operatingSystem = operatingSystem;
@@ -70,5 +73,17 @@ public class Phone {
 
     public void setManufacturingDate(LocalDate manufacturingDate) {
         this.manufacturingDate = manufacturingDate;
+    }
+
+    @Override
+    public String toString() {
+        return "Phone{" +
+                "manufacturingDate=" + manufacturingDate +
+                ", batteryCapacity=" + batteryCapacity +
+                ", screenSize=" + screenSize +
+                ", operatingSystem='" + operatingSystem + '\'' +
+                ", brand='" + brand + '\'' +
+                ", id=" + id +
+                '}';
     }
 }

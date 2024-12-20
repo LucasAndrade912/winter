@@ -1,4 +1,4 @@
-import br.edu.ifpb.webFramework.persistence.annotations.Column;
+import br.edu.ifpb.webFramework.persistence.annotations.Constraints;
 import br.edu.ifpb.webFramework.persistence.annotations.Entity;
 import br.edu.ifpb.webFramework.persistence.annotations.Id;
 import br.edu.ifpb.webFramework.persistence.annotations.OneToOne;
@@ -8,13 +8,13 @@ public class Profile {
     @Id
     private Long id;
 
-    @Column(name = "bio", nullable = false)
+    @Constraints(name = "bio", nullable = false)
     private String bio;
 
-    @Column(name = "username", unique = true, nullable = false)
+    @Constraints(name = "username", unique = true, nullable = false)
     private String username;
 
-    @Column(name = "screenTheme", nullable = false)
+    @Constraints(name = "screenTheme", nullable = false)
     private String screenTheme;
 
     @OneToOne(mappedBy = "profile")
