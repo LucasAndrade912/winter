@@ -219,29 +219,60 @@ public class EntityHandler {
         executeDelete(sql);
     }
 
-    public static void deleteByName(Object entity, String name) throws IllegalAccessException {
+    public static void update(Object entity) throws IllegalAccessException {
         if (entity == null) {
-            return; // Não faz nada se a entidade for nula
+            return;
         }
 
         Class<?> clzz = entity.getClass();
 
-        // Verifica se é uma entidade válida
-        if (!clzz.isAnnotationPresent(Entity.class)) {
+        String tableName = clzz.getSimpleName().toLowerCase();
+
+        if (clzz.isAnnotationPresent(Entity.class)) {
+            Entity entityAnnotation = clzz.getAnnotation(Entity.class);
+            tableName = entityAnnotation.name();
+        } else {
             throw new RuntimeException("A classe não é uma entidade gerenciada.");
         }
 
-        // Obtém o nome da tabela
-        String tableName = clzz.getAnnotation(Entity.class).name();
-        if (tableName.isEmpty()) {
-            tableName = clzz.getSimpleName().toLowerCase();
+        StringBuilder sql = new StringBuilder("UPDATE " + tableName + " SET ");
+
+        Field[] fields = clzz.getDeclaredFields();
+        for (Field field : fields) {
+            field.setAccessible(true);
+
+            if (!field.isAnnotationPresent(OneToMany.class)) {
+                if (!field.isAnnotationPresent(Id.class)) {
+                    String columnName;
+
+                    if (field.isAnnotationPresent(JoinColumn.class)) {
+                        JoinColumn joinColumnAnnotation = field.getAnnotation(JoinColumn.class);
+                        columnName = joinColumnAnnotation.name();
+                    } else {
+                        columnName = field.getName();
+                    }
+
+                    sql.append(columnName).append(" = ");
+
+                    Object value = getFieldValue(field, entity);
+
+                    // Englobando o que for String e Data em aspas
+                    if (value instanceof String || value instanceof java.time.LocalDate) {
+                        sql.append("'").append(value).append("', ");
+                    } else if (value == null || value instanceof ArrayList) {
+                        sql.append("null").append(", ");
+                    } else if (isEntity(field)) {
+                        update(value); // Persiste a entidade relacionada
+                    } else {
+                        sql.append(value).append(", ");
+                    }
+                }
+            }
         }
 
-        // Monta o SQL para exclusão
-        String sql = "DELETE FROM " + tableName + " WHERE name = " + "'" + name + "'";
-
-        // Executa o DELETE
-        executeDelete(sql);
+        sql.setLength(sql.length() - 2);
+        sql.append(" WHERE id = ").append(getId(entity));
+        executeUpdate(sql.toString(), entity);
     }
 
     private static void executeDelete(String sql) {
@@ -253,11 +284,52 @@ public class EntityHandler {
         }
     }
 
+    private static boolean isEntity(Field field) {
+        return field.getType().isAnnotationPresent(Entity.class);
+    }
+
+    private static Long getId(Object entity) {
+        try {
+            Field idField = entity.getClass().getDeclaredField("id");
+            idField.setAccessible(true);
+            return (Long) idField.get(entity);
+        } catch (Exception e) {
+            throw new RuntimeException("Erro ao acessar ID", e);
+        }
+    }
+
     private static Object getFieldValue(Field field, Object entity) {
         try {
             return field.get(entity);
         } catch (IllegalAccessException e) {
             throw new RuntimeException("Erro ao acessar campo", e);
+        }
+    }
+
+    private static String formatValue(Object value) {
+        if (value == null) {
+            return "null";
+        } else if (value instanceof String || value instanceof LocalDate) {
+            return "'" + value + "'";
+        } else {
+            return (String) value;
+        }
+    }
+
+    private static void finalizeSql(StringBuilder sql, StringBuilder sqlValue) {
+        sql.setLength(sql.length() - 2);
+        sqlValue.setLength(sqlValue.length() - 2);
+        sql.append(") ").append(sqlValue).append(")");
+        System.out.println(sql);
+    }
+
+    private static void setGeneratedId(Object entity, long id) {
+        try {
+            Field idField = entity.getClass().getDeclaredField("id");
+            idField.setAccessible(true);
+            idField.set(entity, id);
+        } catch (Exception e) {
+            throw new RuntimeException("Erro ao definir ID", e);
         }
     }
 }
