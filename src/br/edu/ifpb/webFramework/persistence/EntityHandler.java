@@ -8,6 +8,7 @@ import java.sql.Statement;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 public class EntityHandler {
@@ -72,6 +73,18 @@ public class EntityHandler {
         executeInsert(sql.toString(), entity);
     }
 
+    private static void executeInsert(String sql, Object entity) {
+        try (Statement statement = Connection.getManager().createStatement()) {
+            statement.executeUpdate(sql, Statement.RETURN_GENERATED_KEYS);
+            ResultSet generatedKeys = statement.getGeneratedKeys();
+            if (generatedKeys.next()) {
+                setGeneratedId(entity, generatedKeys.getLong(1));
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Erro ao persistir entidade", e);
+        }
+    }
+
     public static void deleteById(Object entity, String id) throws IllegalAccessException {
         if (entity == null) {
             return; // Não faz nada se a entidade for nula
@@ -131,6 +144,45 @@ public class EntityHandler {
         }
     }
 
+    public static void updateById(Object entity, String attribute, String value, String key) {
+        if (entity == null) {
+            return; // Não faz nada se a entidade for nula
+        }
+
+        Class<?> clzz = entity.getClass();
+
+
+        // Verifica se é uma entidade válida
+        if (!clzz.isAnnotationPresent(Entity.class)) {
+            throw new RuntimeException("A classe não é uma entidade gerenciada.");
+        }
+
+        // Obtém o nome da tabela
+        String tableName = clzz.getAnnotation(Entity.class).name();
+        if (tableName.isEmpty()) {
+            tableName = clzz.getSimpleName().toLowerCase();
+        }
+
+        Field[] fields = clzz.getDeclaredFields();
+        for (Field field : fields) {
+
+            if (!field.isAnnotationPresent(OneToMany.class)) {
+                if (!field.isAnnotationPresent(Id.class)) {
+
+                    if (field.isAnnotationPresent(JoinColumn.class)) {
+                        JoinColumn joinColumnAnnotation = field.getAnnotation(JoinColumn.class);
+                        String columnName = joinColumnAnnotation.name();
+
+                        if (attribute.equals(field.getName()) || Objects.equals(attribute, columnName)) {
+                            String sql = "UPDATE " + tableName + " SET " + columnName + " = " + value + " WHERE id = " + attribute;
+                        }
+                    }
+                }
+            }
+        }
+
+    }
+
     private static boolean isEntity(Field field) {
         return field.getType().isAnnotationPresent(Entity.class);
     }
@@ -164,18 +216,6 @@ public class EntityHandler {
         sqlValue.setLength(sqlValue.length() - 2);
         sql.append(") ").append(sqlValue).append(")");
         System.out.println(sql);
-    }
-
-    private static void executeInsert(String sql, Object entity) {
-        try (Statement statement = Connection.getManager().createStatement()) {
-            statement.executeUpdate(sql, Statement.RETURN_GENERATED_KEYS);
-            ResultSet generatedKeys = statement.getGeneratedKeys();
-            if (generatedKeys.next()) {
-                setGeneratedId(entity, generatedKeys.getLong(1));
-            }
-        } catch (Exception e) {
-            throw new RuntimeException("Erro ao persistir entidade", e);
-        }
     }
 
     private static void setGeneratedId(Object entity, long id) {

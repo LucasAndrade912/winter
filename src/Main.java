@@ -29,6 +29,10 @@ public class Main {
             System.out.println("USER PROFILE: " + user.getProfile().getPerson());
             System.out.println("-------------");
         });
+//        EntityHandler.insert(lucas);
+//        EntityHandler.insert(johnner);
+//        EntityHandler.deleteByName(johnner, "Johnner Yelcde");
+//        EntityHandler.updateById(johnner, "name", "Yelcde", johnner.getId().toString());
 
         Connection.disconnect();
     }
