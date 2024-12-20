@@ -1,3 +1,4 @@
+import br.edu.ifpb.webFramework.persistence.annotations.Column;
 import br.edu.ifpb.webFramework.persistence.annotations.Entity;
 import br.edu.ifpb.webFramework.persistence.annotations.Id;
 import br.edu.ifpb.webFramework.persistence.annotations.OneToOne;
@@ -7,14 +8,20 @@ public class Profile {
     @Id
     private Long id;
 
+    @Column(name = "bio", nullable = false)
     private String bio;
 
+    @Column(name = "username", unique = true, nullable = false)
     private String username;
 
+    @Column(name = "screenTheme", nullable = false)
     private String screenTheme;
 
     @OneToOne(mappedBy = "profile")
     private Person person;
+
+    public Profile() {
+    }
 
     public Profile(String bio, String username, String screenTheme) {
         this.bio = bio;
@@ -60,5 +67,15 @@ public class Profile {
 
     public void setPerson(Person person) {
         this.person = person;
+    }
+
+    @Override
+    public String toString() {
+        return "Profile{" +
+                "screenTheme='" + screenTheme + '\'' +
+                ", username='" + username + '\'' +
+                ", bio='" + bio + '\'' +
+                ", id=" + id +
+                '}';
     }
 }

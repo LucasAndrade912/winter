@@ -8,8 +8,10 @@ public class Person {
     @Id
     private Long id;
 
+    @Column(name = "name", unique = true)
     private String name;
 
+    @Column(name = "email", unique = true, nullable = false)
     private String email;
 
     @OneToOne
@@ -18,6 +20,9 @@ public class Person {
 
     @OneToMany(mappedBy = "user")
     private List<Phone> phones = new ArrayList<>();
+
+    public Person() {
+    }
 
     public Person(String name, String email) {
         this.name = name;
@@ -68,5 +73,14 @@ public class Person {
 
     public void setPhones(List<Phone> phones) {
         this.phones = phones;
+    }
+
+    @Override
+    public String toString() {
+        return "Person{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", email='" + email + '\'' +
+                '}';
     }
 }

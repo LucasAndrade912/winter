@@ -124,6 +124,8 @@ public class DDLHandler {
             sql.setLength(sql.length() - 2);
             sql.append(");");
 
+            System.out.println(sql);
+
             java.sql.Connection manager = Connection.getManager();
 
             try (Statement statement = manager.createStatement()) {
