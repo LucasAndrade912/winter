@@ -5,7 +5,6 @@ import br.edu.ifpb.webFramework.persistence.annotations.Constraints;
 import java.lang.reflect.Field;
 
 public abstract class Column {
-
     protected Field field;
     protected String columnName;
 

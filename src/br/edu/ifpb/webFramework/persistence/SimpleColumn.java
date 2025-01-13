@@ -47,4 +47,12 @@ public class SimpleColumn extends Column {
         }
         return "TEXT";
     }
+
+    @Override
+    public String toString() {
+        return "SimpleColumn{" +
+                "field=" + field +
+                ", columnName='" + columnName + '\'' +
+                '}';
+    }
 }

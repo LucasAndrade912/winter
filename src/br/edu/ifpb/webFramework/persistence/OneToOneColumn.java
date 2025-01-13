@@ -40,4 +40,12 @@ public class OneToOneColumn extends Column {
         }
         return "";
     }
+
+    @Override
+    public String toString() {
+        return "OneToOneColumn{" +
+                "field=" + field +
+                ", columnName='" + columnName + '\'' +
+                '}';
+    }
 }

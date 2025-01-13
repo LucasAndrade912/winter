@@ -5,7 +5,6 @@ import br.edu.ifpb.webFramework.persistence.annotations.*;
 import java.lang.reflect.Field;
 
 public class OneToManyColumn extends Column {
-
     public OneToManyColumn(Field field) {
         super(field);
     }
@@ -39,5 +38,13 @@ public class OneToManyColumn extends Column {
             return "FOREIGN KEY (" + columnName + ") REFERENCES " + referenceTable + "(id)";
         }
         return "";
+    }
+
+    @Override
+    public String toString() {
+        return "OneToManyColumn{" +
+                "field=" + field +
+                ", columnName='" + columnName + '\'' +
+                '}';
     }
 }
