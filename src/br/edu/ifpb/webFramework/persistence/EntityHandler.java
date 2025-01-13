@@ -284,20 +284,6 @@ public class EntityHandler {
         }
     }
 
-    private static boolean isEntity(Field field) {
-        return field.getType().isAnnotationPresent(Entity.class);
-    }
-
-    private static Long getId(Object entity) {
-        try {
-            Field idField = entity.getClass().getDeclaredField("id");
-            idField.setAccessible(true);
-            return (Long) idField.get(entity);
-        } catch (Exception e) {
-            throw new RuntimeException("Erro ao acessar ID", e);
-        }
-    }
-
     private static Object getFieldValue(Field field, Object entity) {
         try {
             return field.get(entity);
@@ -306,30 +292,12 @@ public class EntityHandler {
         }
     }
 
-    private static String formatValue(Object value) {
-        if (value == null) {
-            return "null";
-        } else if (value instanceof String || value instanceof LocalDate) {
-            return "'" + value + "'";
-        } else {
-            return (String) value;
-        }
-    }
-
-    private static void finalizeSql(StringBuilder sql, StringBuilder sqlValue) {
-        sql.setLength(sql.length() - 2);
-        sqlValue.setLength(sqlValue.length() - 2);
-        sql.append(") ").append(sqlValue).append(")");
-        System.out.println(sql);
-    }
-
-    private static void setGeneratedId(Object entity, long id) {
-        try {
-            Field idField = entity.getClass().getDeclaredField("id");
-            idField.setAccessible(true);
-            idField.set(entity, id);
+    private static void executeUpdate(String sql, Object entity) {
+        try (Statement statement = Connection.getManager().createStatement()) {
+            statement.executeUpdate(sql);
+            System.out.println("SQL Executado: " + sql);
         } catch (Exception e) {
-            throw new RuntimeException("Erro ao definir ID", e);
+            throw new RuntimeException("Erro ao atualizar entidade: " + sql, e);
         }
     }
 }

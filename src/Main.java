@@ -28,11 +28,18 @@ public class Main {
         Person person3 = new Person("José", "jose@email.com", profile3);
         person3.setPhones(List.of(phone3, phone4));
 
-        EntityHandler.insert(person1);
-        EntityHandler.insert(person2);
-        EntityHandler.insert(person3);
+//        EntityHandler.insert(person1);
+//        EntityHandler.insert(person2);
+//        EntityHandler.insert(person3);
 
-        String sql = new QueryBuilder("users").select().orderBy("id").build();
+//        person1.setName("Lucas");
+//        EntityHandler.update(person1);
+
+        String sql = new QueryBuilder("users")
+                .select()
+                .where("users.name = 'Lucas'")
+                .orderBy("id")
+                .build();
 
         List<Person> personList = EntityManager.executeQuery(sql, Person.class);
 
