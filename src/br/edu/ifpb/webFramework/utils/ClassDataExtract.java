@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 public class ClassDataExtract {
     private static final ColumnFactory columnFactory = new ColumnFactory();
 
-    public static DataExtracted extract(Class<?> clzz) {
+    public static ClassDataExtracted extract(Class<?> clzz) {
         String className = clzz.getSimpleName();
         Boolean isEntity = false;
         Field[] fields = clzz.getDeclaredFields();
@@ -25,6 +25,6 @@ public class ClassDataExtract {
             tableName = entity.name().isEmpty() ? className : entity.name();
         }
 
-        return new DataExtracted(className, isEntity, fields, fields.length, tableName, columns, columns.size());
+        return new ClassDataExtracted(className, isEntity, fields, fields.length, tableName, columns, columns.size());
     }
 }

@@ -6,7 +6,7 @@ import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.List;
 
-public class DataExtracted {
+public class ClassDataExtracted {
     private String className;
     private Boolean isEntity;
     private Field[] fields;
@@ -15,7 +15,7 @@ public class DataExtracted {
     private List<Column> columns;
     private Integer totalColumns;
 
-    public DataExtracted(String className, Boolean isEntity, Field[] fields, Integer totalFields, String tableName, List<Column> columns, Integer totalColumns) {
+    public ClassDataExtracted(String className, Boolean isEntity, Field[] fields, Integer totalFields, String tableName, List<Column> columns, Integer totalColumns) {
         this.className = className;
         this.isEntity = isEntity;
         this.fields = fields;
