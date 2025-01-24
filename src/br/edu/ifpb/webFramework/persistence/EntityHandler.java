@@ -1,6 +1,10 @@
 package br.edu.ifpb.webFramework.persistence;
 
 import br.edu.ifpb.webFramework.persistence.annotations.*;
+import br.edu.ifpb.webFramework.utils.ClassDataExtract;
+import br.edu.ifpb.webFramework.utils.ClassDataExtracted;
+import br.edu.ifpb.webFramework.utils.ObjectDataExtract;
+import br.edu.ifpb.webFramework.utils.ObjectDataExtracted;
 
 import java.lang.reflect.Field;
 import java.sql.ResultSet;
@@ -20,39 +24,41 @@ public class EntityHandler {
         }
         persistedEntities.add(entity);
 
-        Class<?> clzz = entity.getClass();
-        if (!clzz.isAnnotationPresent(Entity.class)) {
+        ObjectDataExtracted extracted = ObjectDataExtract.extract(entity);
+
+        Class<?> clzz = extracted.getClass();
+        ClassDataExtracted dataExtracted = extracted.getClassDataExtracted();
+        if (!dataExtracted.getEntity()) {
             throw new RuntimeException("Classe não é uma entidade gerenciada.");
         }
 
-        String tableName = resolveTableName(clzz);
+        String tableName = dataExtracted.getTableName();
         StringBuilder sql = new StringBuilder("INSERT INTO " + tableName + " (");
         StringBuilder sqlValues = new StringBuilder("VALUES (");
 
-        Field[] fields = clzz.getDeclaredFields();
+        List<Column> columns = dataExtracted.getColumns();
         List<Object> oneToManyCollections = new ArrayList<>();
 
-        for (Field field : fields) {
-            field.setAccessible(true);
-
-            if (field.isAnnotationPresent(Id.class)) {
+        for (Column column : columns) {
+            if (column.isPrimaryKey()) {
                 continue; // Ignorar campo ID na inserção (assume-se que ele será gerado)
             }
 
+            Field field = column.getField();
             Object value = field.get(entity);
             if (value == null) {
                 continue; // Ignorar campos nulos
             }
 
-            if (field.isAnnotationPresent(JoinColumn.class) && isEntity(field)) {
+            if (column.isJoinColumn() && column.isEntity()) {
                 // Relacionamento unidirecional
                 insert(value); // Persistir a entidade relacionada
                 Object relatedId = getId(value);
-                appendColumnAndValue(sql, sqlValues, resolveJoinColumnName(field), relatedId);
+                appendColumnAndValue(sql, sqlValues, column.getColumnName(), relatedId);
             } else if (field.isAnnotationPresent(OneToMany.class) && isCollection(field)) {
                 // Relacionamento OneToMany (guardar para persistir após o pai)
                 oneToManyCollections.add(field);
-            } else if (isEntity(field)) {
+            } else if (column.isEntity()) {
                 // Relacionamento bidirecional ou embutido
                 insert(value); // Persistir a entidade relacionada
                 Object relatedId = getId(value);
@@ -103,16 +109,6 @@ public class EntityHandler {
         }
     }
 
-    private static String resolveTableName(Class<?> clzz) {
-        if (clzz.isAnnotationPresent(Entity.class)) {
-            Entity entityAnnotation = clzz.getAnnotation(Entity.class);
-            if (!entityAnnotation.name().isEmpty()) {
-                return entityAnnotation.name();
-            }
-        }
-        return clzz.getSimpleName().toLowerCase();
-    }
-
     private static String resolveColumnName(Field field) {
         if (field.isAnnotationPresent(Constraints.class)) {
             Constraints columnAnnotation = field.getAnnotation(Constraints.class);
@@ -121,20 +117,6 @@ public class EntityHandler {
             }
         }
         return field.getName();
-    }
-
-    private static String resolveJoinColumnName(Field field) {
-        if (field.isAnnotationPresent(JoinColumn.class)) {
-            JoinColumn joinColumnAnnotation = field.getAnnotation(JoinColumn.class);
-            if (!joinColumnAnnotation.name().isEmpty()) {
-                return joinColumnAnnotation.name();
-            }
-        }
-        return field.getName() + "_id"; // Padrão para nomes de colunas de chave estrangeira
-    }
-
-    private static boolean isEntity(Field field) {
-        return field.getType().isAnnotationPresent(Entity.class);
     }
 
     private static boolean isCollection(Field field) {
@@ -224,33 +206,25 @@ public class EntityHandler {
             return;
         }
 
-        Class<?> clzz = entity.getClass();
+        ObjectDataExtracted extracted = ObjectDataExtract.extract(entity);
+        ClassDataExtracted dataExtracted = extracted.getClassDataExtracted();
+        Class<?> clzz = dataExtracted.getClass();
 
-        String tableName = clzz.getSimpleName().toLowerCase();
+        String tableName = dataExtracted.getTableName();
 
-        if (clzz.isAnnotationPresent(Entity.class)) {
-            Entity entityAnnotation = clzz.getAnnotation(Entity.class);
-            tableName = entityAnnotation.name();
-        } else {
+        if (!clzz.isAnnotationPresent(Entity.class)) {
             throw new RuntimeException("A classe não é uma entidade gerenciada.");
         }
 
         StringBuilder sql = new StringBuilder("UPDATE " + tableName + " SET ");
 
-        Field[] fields = clzz.getDeclaredFields();
-        for (Field field : fields) {
-            field.setAccessible(true);
+        List<Column> columns = dataExtracted.getColumns();
+        for (Column column : columns) {
+            Field field = column.getField();
 
             if (!field.isAnnotationPresent(OneToMany.class)) {
-                if (!field.isAnnotationPresent(Id.class)) {
-                    String columnName;
-
-                    if (field.isAnnotationPresent(JoinColumn.class)) {
-                        JoinColumn joinColumnAnnotation = field.getAnnotation(JoinColumn.class);
-                        columnName = joinColumnAnnotation.name();
-                    } else {
-                        columnName = field.getName();
-                    }
+                if (!column.isEntity()) {
+                    String columnName = column.getColumnName();
 
                     sql.append(columnName).append(" = ");
 
@@ -261,7 +235,7 @@ public class EntityHandler {
                         sql.append("'").append(value).append("', ");
                     } else if (value == null || value instanceof ArrayList) {
                         sql.append("null").append(", ");
-                    } else if (isEntity(field)) {
+                    } else if (column.isEntity()) {
                         update(value); // Persiste a entidade relacionada
                     } else {
                         sql.append(value).append(", ");
