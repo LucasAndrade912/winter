@@ -12,19 +12,14 @@ public class ManyToOneColumn extends Column {
     @Override
     public String getDefinition() {
         // Lado fraco, deve ter chave estrangeira
-        return columnName + "_id INTEGER";
-    }
-
-    @Override
-    public boolean isForeignKey() {
-        return false;
+        return columnName + " INTEGER";
     }
 
     @Override
     public String getForeignKeyDefinition() {
         if (isForeignKey()) {
             String referenceTable = field.getType().getAnnotation(Entity.class).name();
-            return "FOREIGN KEY (" + columnName + "_id) REFERENCES " + referenceTable + "(id)";
+            return "FOREIGN KEY (" + columnName + ") REFERENCES " + referenceTable + "(id)";
         }
         return "";
     }

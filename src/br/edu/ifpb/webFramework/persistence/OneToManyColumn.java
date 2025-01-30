@@ -15,20 +15,11 @@ public class OneToManyColumn extends Column {
             OneToMany oneToMany = field.getAnnotation(OneToMany.class);
             if (oneToMany.mappedBy().isEmpty()) {
                 // Lado forte, não deve ter chave estrangeira
-                return columnName + "_id INTEGER";
+                return columnName + " INTEGER";
             }
         }
         // Lado fraco, deve ter chave estrangeira
         return "";
-    }
-
-    @Override
-    public boolean isForeignKey() {
-        if (field.isAnnotationPresent(OneToMany.class)) {
-            OneToMany oneToMany = field.getAnnotation(OneToMany.class);
-            return oneToMany.mappedBy().isEmpty();
-        }
-        return false;
     }
 
     @Override

@@ -45,6 +45,7 @@ public class EntityHandler {
             }
 
             Field field = column.getField();
+            field.setAccessible(true);
             Object value = field.get(entity);
             if (value == null) {
                 continue; // Ignorar campos nulos
