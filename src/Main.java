@@ -60,6 +60,8 @@ public class Main {
         System.out.println(list1);
         System.out.println(list2);
 
+        DeleteHandler.delete(list.get(0));
+
         Connection.disconnect();
     }
 }
