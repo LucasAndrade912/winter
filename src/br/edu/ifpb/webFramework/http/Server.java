@@ -1,5 +1,6 @@
 package br.edu.ifpb.webFramework.http;
 
+import com.sun.net.httpserver.HttpContext;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 
@@ -15,6 +16,7 @@ public class Server {
     private InetSocketAddress socket;
     private HttpServer server;
     private Map<String, Route> routes = new HashMap<>();
+    private Map<String, HttpContext> contexts = new HashMap<>();
 
     public Server(String host, int port) throws IOException {
         this.host = host;
@@ -23,11 +25,16 @@ public class Server {
         this.server = HttpServer.create(socket, 10);
     }
 
-    public void addRoute(String path, RequestMethod method, BiConsumer<Request, Response> handler) {
-        this.routes.computeIfAbsent(path, key -> new Route(path, method, handler));
-        this.server.createContext(path, exchange -> {
-            this.handleRequest(this.routes.get(path), exchange);
-        });
+    public void addRoute(String path, RequestMethod method, BiConsumer<Request, Response> handler) throws IOException {
+        this.routes.computeIfAbsent(path + method.getMethod(), key -> new Route(path, method, handler));
+        if (this.contexts.containsKey(path)) {
+            this.handleRequest(this.routes.get(path + method.getMethod()), this.contexts.get(path));
+        } else {
+            HttpContext context = this.server.createContext(path, exchange -> {
+                this.handleRequest(this.routes.get(path + method.getMethod()), exchange);
+            });
+            this.contexts.put(path, context);
+        }
     }
 
     public void handleRequest(Route route, HttpExchange exchange) throws IOException {

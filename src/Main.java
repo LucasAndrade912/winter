@@ -1,4 +1,3 @@
-import br.edu.ifpb.webFramework.Test;
 import br.edu.ifpb.webFramework.http.RequestMethod;
 import br.edu.ifpb.webFramework.http.Server;
 
@@ -20,6 +19,14 @@ public class Main {
             List<String> a = List.of("Lucas", "Jessye");
             try {
                 response.send(200, a);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
+
+        server.addRoute("/test", RequestMethod.POST, (request, response) -> {
+            try {
+                response.send(200, "Hello");
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
