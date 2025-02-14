@@ -15,8 +15,7 @@ public class Server {
     private int port;
     private InetSocketAddress socket;
     private HttpServer server;
-    private Map<String, Route> routes = new HashMap<>();
-    private Map<String, HttpContext> contexts = new HashMap<>();
+    private Map<String, Map<String, Route>> routes = new HashMap<>();
 
     public Server(String host, int port) throws IOException {
         this.host = host;
@@ -26,14 +25,18 @@ public class Server {
     }
 
     public void addRoute(String path, RequestMethod method, BiConsumer<Request, Response> handler) throws IOException {
-        this.routes.computeIfAbsent(path + method.getMethod(), key -> new Route(path, method, handler));
-        if (this.contexts.containsKey(path)) {
-            this.handleRequest(this.routes.get(path + method.getMethod()), this.contexts.get(path));
-        } else {
-            HttpContext context = this.server.createContext(path, exchange -> {
-                this.handleRequest(this.routes.get(path + method.getMethod()), exchange);
+        if (this.routes.get(path) == null) {
+            Map<String, Route> map = new HashMap<>();
+            map.put(method.getMethod(), new Route(path, method, handler));
+            this.routes.put(path, map);
+
+            this.server.createContext(path, exchange -> {
+                this.handleRequest(this.routes.get(exchange.getRequestURI().getPath()).get(exchange.getRequestMethod().toLowerCase()), exchange);
             });
-            this.contexts.put(path, context);
+        } else {
+            Map<String, Route> map = this.routes.get(path);
+            map.put(method.getMethod(), new Route(path, method, handler));
+            this.routes.put(path, map);
         }
     }
 
