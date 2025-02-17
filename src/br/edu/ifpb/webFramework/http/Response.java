@@ -5,11 +5,10 @@ import com.sun.net.httpserver.HttpExchange;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 
 public class Response {
-    private HttpExchange exchange;
+    private final HttpExchange exchange;
     private final ObjectMapper mapper = new ObjectMapper();
 
     public Response(HttpExchange exchange) {

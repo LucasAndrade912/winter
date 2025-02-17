@@ -1,36 +1,33 @@
 package br.edu.ifpb.webFramework.persistence;
 
-import br.edu.ifpb.webFramework.persistence.annotations.Entity;
+import br.edu.ifpb.webFramework.utils.ClassDataExtract;
+import br.edu.ifpb.webFramework.utils.ClassDataExtracted;
 
-import java.lang.reflect.Field;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.List;
 
 public class DDLHandler {
-
     private static final ColumnFactory columnFactory = new ColumnFactory();
 
     public static void createTable(Class<?> clzz) throws Exception {
-        if (clzz.isAnnotationPresent(Entity.class)) {
-            Entity entity = clzz.getAnnotation(Entity.class);
-            String tableName = entity.name().isEmpty() ? clzz.getSimpleName() : entity.name();
+        ClassDataExtracted extracted = ClassDataExtract.extract(clzz);
 
-            StringBuilder sql = new StringBuilder("CREATE TABLE IF NOT EXISTS " + tableName + "(");
+        if (extracted.getEntity()) {
+            StringBuilder sql = new StringBuilder("CREATE TABLE IF NOT EXISTS " + extracted.getTableName() + "(");
             StringBuilder foreignKeys = new StringBuilder();
 
-            Field[] fields = clzz.getDeclaredFields();
+            List<Column> columns = extracted.getColumns();
 
-            for (Field field : fields) {
-                field.setAccessible(true);
+            for (Column column : columns) {
+                column.getField().setAccessible(true);
 
-                // Criar coluna
-                Column column = columnFactory.createColumn(field);
                 if (!column.getDefinition().isEmpty()) {
                     sql.append(column.getDefinition()).append(", ");
                 }
 
                 // Adicionar chaves estrangeiras se existirem
-                if (column.isForeignKey()) {
+                if (column.isForeignKey() && column.isJoinColumn()) {
                     foreignKeys.append(column.getForeignKeyDefinition()).append(", ");
                 }
             }

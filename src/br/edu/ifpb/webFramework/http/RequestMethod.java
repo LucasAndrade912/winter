@@ -6,7 +6,7 @@ public enum RequestMethod {
     PUT("put"),
     DELETE("delete");
 
-    private String method;
+    private final String method;
 
     RequestMethod(String method) {
         this.method = method;

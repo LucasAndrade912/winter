@@ -3,9 +3,9 @@ package br.edu.ifpb.webFramework.http;
 import java.util.function.BiConsumer;
 
 public class Route {
-    private String path;
-    private RequestMethod method;
-    private BiConsumer<Request, Response> handler;
+    private final String path;
+    private final RequestMethod method;
+    private final BiConsumer<Request, Response> handler;
     private Request request;
     private Response response;
 
