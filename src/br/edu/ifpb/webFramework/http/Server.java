@@ -3,7 +3,6 @@ package br.edu.ifpb.webFramework.http;
 import br.edu.ifpb.webFramework.exceptions.ConnectionAlreadyExists;
 import br.edu.ifpb.webFramework.persistence.Connection;
 import br.edu.ifpb.webFramework.persistence.DDLHandler;
-import br.edu.ifpb.webFramework.persistence.annotations.Entity;
 import br.edu.ifpb.webFramework.utils.ClassDataExtract;
 import br.edu.ifpb.webFramework.utils.ClassDataExtracted;
 import com.sun.net.httpserver.HttpExchange;
@@ -27,26 +26,47 @@ public class Server {
         this.port = port;
         InetSocketAddress socket = new InetSocketAddress(host, port);
         this.server = HttpServer.create(socket, 10);
+
+        this.server.createContext("/", exchange -> {
+            String requestPath = exchange.getRequestURI().getPath();
+            String requestMethod = exchange.getRequestMethod().toLowerCase();
+
+            Route matchedRoute = findMatchingRoute(requestPath, requestMethod);
+            if (matchedRoute != null) {
+                this.handleRequest(matchedRoute, exchange);
+            } else {
+                Response response = new Response(exchange);
+                response.send(404, Map.of("error", "Route not found"));
+            }
+        });
     }
 
     public void addRoute(String path, RequestMethod method, BiConsumer<Request, Response> handler) {
-        if (this.routes.get(path) == null) {
-            Map<String, Route> map = new HashMap<>();
-            map.put(method.getMethod(), new Route(path, method, handler));
-            this.routes.put(path, map);
+        Map<String, Route> methodMap = this.routes.computeIfAbsent(path, k -> new HashMap<>());
+        methodMap.put(method.getMethod(), new Route(path, method, handler));
+    }
 
-            this.server.createContext(path, exchange -> {
-                this.handleRequest(this.routes.get(exchange.getRequestURI().getPath()).get(exchange.getRequestMethod().toLowerCase()), exchange);
-            });
-        } else {
-            Map<String, Route> map = this.routes.get(path);
-            map.put(method.getMethod(), new Route(path, method, handler));
-            this.routes.put(path, map);
+    private Route findMatchingRoute(String requestPath, String requestMethod) {
+        for (Map.Entry<String, Map<String, Route>> entry : this.routes.entrySet()) {
+            String routePath = entry.getKey();
+            if (matchesPath(routePath, requestPath)) {
+                return entry.getValue().get(requestMethod);
+            }
         }
+        return null;
+    }
+
+    // Verifica se a rota corresponde ao caminho (ex.: /users/{id} -> /users/123)
+    private boolean matchesPath(String routePath, String requestPath) {
+        String regex = routePath.replaceAll("\\{[^/]+}", "[^/]+");
+        return requestPath.matches(regex);
     }
 
     public void handleRequest(Route route, HttpExchange exchange) throws IOException {
-        Request request = new Request(exchange);
+        String requestPath = exchange.getRequestURI().getPath();
+        Map<String, String> pathParams = route.extractPathParameters(requestPath);
+
+        Request request = new Request(exchange, pathParams);
         Response response = new Response(exchange);
 
         route.setRequest(request);

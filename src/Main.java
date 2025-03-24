@@ -14,7 +14,7 @@ public class Main {
         server.start();
         server.initDatabase("localhost", 5432, "winter", "postgres", "postgres", entities);
 
-        server.addRoute("/users", RequestMethod.GET, (request, response) -> {
+        server.addRoute("/users/{id}", RequestMethod.GET, (request, response) -> {
             try {
                 Map<String, String> parameters = request.getParameters();
                 List<Class<Person>> users = null;
@@ -35,7 +35,7 @@ public class Main {
                 UserDTO requestJson = request.getJson(UserDTO.class);
                 Person person = new Person(requestJson.name(), requestJson.email());
                 EntityHandler.insert(person);
-                response.send(200, person);
+                response.send(201, person);
             } catch (IOException | IllegalAccessException e) {
                 throw new RuntimeException(e);
             }

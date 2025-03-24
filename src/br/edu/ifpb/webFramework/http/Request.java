@@ -18,12 +18,13 @@ public class Request {
     private final Map<String, String> parameters;
     private final ObjectMapper mapper = new ObjectMapper();
 
-    public Request(HttpExchange exchange) throws IOException {
+    public Request(HttpExchange exchange, Map<String, String> pathParameters) throws IOException {
         this.method = exchange.getRequestMethod();
         this.url = exchange.getRequestURI().toString();
         this.body = exchange.getRequestBody().readAllBytes();
         this.headers = exchange.getRequestHeaders();
         this.parameters = this.parseQuery(exchange.getRequestURI().getQuery());
+        this.parameters.putAll(pathParameters);
     }
 
     public String getMethod() {
