@@ -44,15 +44,26 @@ public class Server {
     }
 
     public void addRoute(String path, RequestMethod method, BiConsumer<Request, Response> handler) {
+        RouteIterator iterator = getRouteIterator();
+
+        while (iterator.hasNext()) {
+            Route route = iterator.next();
+            if (route.getPath().equals(path) && route.getMethod().equals(method)) {
+                throw new IllegalArgumentException("Route already exists: " + method + " " + path);
+            }
+        }
+
         Map<String, Route> methodMap = this.routes.computeIfAbsent(path, k -> new HashMap<>());
         methodMap.put(method.getMethod(), new Route(path, method, handler));
     }
 
     private Route findMatchingRoute(String requestPath, String requestMethod) {
-        for (Map.Entry<String, Map<String, Route>> entry : this.routes.entrySet()) {
-            String routePath = entry.getKey();
-            if (matchesPath(routePath, requestPath)) {
-                return entry.getValue().get(requestMethod);
+        RouteIterator iterator = getRouteIterator();
+
+        while (iterator.hasNext()) {
+            Route route = iterator.next();
+            if (matchesPath(route.getPath(), requestPath) && route.getMethod().getMethod().equalsIgnoreCase(requestMethod)) {
+                return route;
             }
         }
         return null;
@@ -97,6 +108,10 @@ public class Server {
         });
 
         System.out.println("Database initialized");
+    }
+
+    public RouteIterator getRouteIterator() {
+        return new RouteCollectionIterator(this.routes);
     }
 
     public void start() {
