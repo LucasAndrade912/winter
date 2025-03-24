@@ -1,7 +1,9 @@
+import br.edu.ifpb.webFramework.LoginDTO;
 import br.edu.ifpb.webFramework.http.RequestMethod;
 import br.edu.ifpb.webFramework.http.Server;
 import br.edu.ifpb.webFramework.persistence.EntityHandler;
 import br.edu.ifpb.webFramework.persistence.QueryHandler;
+import br.edu.ifpb.webFramework.utils.JWTUtils;
 
 import java.io.IOException;
 import java.util.List;
@@ -59,5 +61,39 @@ public class Main {
                 throw new RuntimeException(e);
             }
         });
+
+        server.addRoute("/login", RequestMethod.POST, (request, response) -> {
+            try {
+                // Aqui você pode validar o email e a senha contra um banco de dados
+                // Para fins de exemplo, vamos usar "user" como nome de usuário
+                // Senha para exemplo: "pawword"
+
+                LoginDTO data = request.getJson(LoginDTO.class);
+
+                if ("user".equals(data.username()) && "password".equals(data.password())) {
+                    String token = JWTUtils.createToken("user");
+                    response.send(200, "Token: " + token);
+                } else {
+                    response.send(401, "Unauthorized");
+                }
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        });
+
+        server.addRoute("/protected", RequestMethod.GET, (request, response) -> {
+            try {
+                String token = request.getToken();
+
+                if (token == null || JWTUtils.validateToken(token) == null) {
+                    response.send(401, "Unauthorized");
+                } else {
+                    response.send(200, "Welcome to the protected route!");
+                }
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        });
+
     }
 }

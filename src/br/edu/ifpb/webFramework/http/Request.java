@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class Request {
@@ -49,6 +50,17 @@ public class Request {
 
     public Map<String, String> getParameters() {
         return parameters;
+    }
+
+    public String getToken() {
+        List<String> authorizationHeader = headers.get("Authorization");
+        if (authorizationHeader != null && !authorizationHeader.isEmpty()) {
+            String header = authorizationHeader.get(0);
+            if (header.startsWith("Bearer ")) {
+                return header.substring(7); // Extrai o token após "Bearer "
+            }
+        }
+        return null;
     }
 
     private Map<String, String> parseQuery(String query) {
